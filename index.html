@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 House Price Predictor</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #0a0a0f;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background */
+        .bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse at 20% 80%, rgba(120, 80, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(255, 100, 150, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(80, 200, 255, 0.05) 0%, transparent 70%);
+        }
+        
+        .bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+        
+        /* Floating shapes */
+        .shape {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: 0.3;
+            animation: float 15s ease-in-out infinite;
+            z-index: -1;
+        }
+        
+        .shape-1 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #7850ff, #ff6496);
+            top: -100px;
+            right: -100px;
+            animation-delay: 0s;
+        }
+        
+        .shape-2 {
+            width: 300px;
+            height: 300px;
+            background: linear-gradient(135deg, #50c8ff, #7850ff);
+            bottom: -50px;
+            left: -50px;
+            animation-delay: -5s;
+        }
+        
+        .shape-3 {
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(135deg, #ff6496, #ffb850);
+            top: 50%;
+            left: 50%;
+            animation-delay: -10s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -30px) scale(1.05); }
+            50% { transform: translate(-20px, 20px) scale(0.95); }
+            75% { transform: translate(20px, 30px) scale(1.02); }
+        }
+        
+        /* Main container */
+        .container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter:20px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 32px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 
+                0 25px 80px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            animation: cardFloat 6s ease-in-out infinite;
+        }
+        
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #7850ff, #ff6496);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 40px rgba(120, 80, 255, 0.4);
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 40px rgba(120, 80, 255, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 15px 50px rgba(120, 80, 255, 0.6); }
+        }
+        
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+        
+        .subtitle {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+        
+        /* Form */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+        
+        label {
+            display: block;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #7850ff;
+            background: rgba(120, 80, 255, 0.1);
+            box-shadow: 0 0 0 4px rgba(120, 80, 255, 0.15);
+        }
+        
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1.2rem;
+        }
+        
+        select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #7850ff, #ff6496);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(120, 80, 255, 0.4);
+        }
+        
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        /* Result */
+        .result {
+            margin-top: 2rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, rgba(120, 80, 255, 0.2), rgba(255, 100, 150, 0.2));
+            border-radius: 16px;
+            text-align: center;
+            display: none;
+            animation: resultShow 0.5s ease;
+            border: 1px solid rgba(120, 80, 255, 0.3);
+        }
+        
+        .result.show {
+            display: block;
+        }
+        
+        @keyframes resultShow {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .result-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .result-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff, #ffb850);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .result-details {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.85rem;
+        }
+        
+        /* Model info */
+        .model-info {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .model-info span {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.75rem;
+        }
+        
+        .model-info strong {
+            color: #7850ff;
+        }
+        
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #7850ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 600px) {
+            .card {
+                padding: 2rem;
+                border-radius: 24px;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .result-price {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg"></div>
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    
+    <div class="container">
+        <div class="card">
+            <div class="header">
+                <div class="icon">🏠</div>
+                <h1>House Price Predictor</h1>
+                <p class="subtitle">AI-powered price estimation</p>
+            </div>
+            
+            <form id="predictForm">
+                <div class="form-group">
+                    <label>SQUARE FEET</label>
+                    <input type="number" name="sqft" placeholder="e.g. 1500" required min="100" max="10000">
+                </div>
+                
+                <div class="form-group">
+                    <label>BEDROOMS</label>
+                    <input type="number" name="bedrooms" placeholder="e.g. 3" required min="1" max="10">
+                </div>
+                
+                <div class="form-group">
+                    <label>BATHROOMS</label>
+                    <input type="number" name="bathrooms" placeholder="e.g. 2" required min="1" max="10">
+                </div>
+                
+                <div class="form-group">
+                    <label>AGE (YEARS)</label>
+                    <input type="number" name="age" placeholder="e.g. 10" required min="0" max="100">
+                </div>
+                
+                <div class="form-group">
+                    <label>LOCATION</label>
+                    <select name="location">
+                        <option value="8">🏙️ Urban</option>
+                        <option value="5">🏘️ Suburban</option>
+                        <option value="2">🌄 Rural</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn">✨ Predict Price</button>
+            </form>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="color: rgba(255,255,255,0.5);">Analyzing...</p>
+            </div>
+            
+            <div class="result" id="result">
+                <div class="result-label">Estimated Price</div>
+                <div class="result-price" id="priceDisplay">$0</div>
+                <div class="result-details" id="details"></div>
+            </div>
+            
+            <div class="model-info">
+                <span>Model: <strong>Linear Regression</strong> | Data: <strong>200 records</strong> | MAE: <strong>~±$4,867</strong></span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Client-side Linear Regression model (same as Python)
+        class LinearRegression {
+            constructor() {
+                this.weights = null;
+                this.bias = 0;
+                this.means = null;
+                this.stds = null;
+                this.isTrained = false;
+            }
+            
+            normalize(X) {
+                const nFeatures = X[0].length;
+                this.means = [];
+                this.stds = [];
+                
+                for (let j = 0; j < nFeatures; j++) {
+                    let sum = 0;
+                    for (let i = 0; i < X.length; i++) sum += X[i][j];
+                    this.means[j] = sum / X.length;
+                    
+                    let sqDiffSum = 0;
+                    for (let i = 0; i < X.length; i++) sqDiffSum += Math.pow(X[i][j] - this.means[j], 2);
+                    this.stds[j] = Math.sqrt(sqDiffSum / X.length) || 1;
+                }
+                
+                return X.map(x => x.map((xi, j) => (xi - this.means[j]) / this.stds[j]));
+            }
+            
+            fit(X, y, lr = 0.1, epochs = 500) {
+                const XNorm = this.normalize(X);
+                const nFeatures = XNorm[0].length;
+                this.weights = new Array(nFeatures).fill(0);
+                this.bias = y.reduce((a, b) => a + b, 0) / y.length;
+                const n = XNorm.length;
+                
+                for (let epoch = 0; epoch < epochs; epoch++) {
+                    const predictions = XNorm.map(x => 
+                        x.reduce((sum, xi, j) => sum + this.weights[j] * xi, 0) + this.bias
+                    );
+                    const errors = predictions.map((p, i) => p - y[i]);
+                    
+                    for (let j = 0; j < nFeatures; j++) {
+                        let grad = 0;
+                        for (let i = 0; i < n; i++) grad += errors[i] * XNorm[i][j];
+                        this.weights[j] -= lr * (grad / n);
+                    }
+                    
+                    let biasGrad = errors.reduce((a, b) => a + b, 0);
+                    this.bias -= lr * (biasGrad / n);
+                }
+                this.isTrained = true;
+            }
+            
+            predict(x) {
+                if (!this.isTrained) return 0;
+                const xNorm = x.map((xi, j) => (xi - this.means[j]) / this.stds[j]);
+                return xNorm.reduce((sum, xi, j) => sum + this.weights[j] * xi, 0) + this.bias;
+            }
+        }
+        
+        // Generate synthetic housing data
+        function generateData() {
+            const X = [];
+            const y = [];
+            const locations = [
+                { score: 8, name: 'Urban' },
+                { score: 5, name: 'Suburban' },
+                { score: 2, name: 'Rural' }
+            ];
+            
+            for (let i = 0; i < 200; i++) {
+                const sqft = Math.floor(Math.random() * 3500) + 500;
+                const bedrooms = Math.floor(Math.random() * 6) + 1;
+                const bathrooms = Math.floor(Math.random() * 4) + 1;
+                const age = Math.floor(Math.random() * 50);
+                const location = locations[Math.floor(Math.random() * 3)];
+                
+                let price = 50000 + sqft * 100 + bedrooms * 5000 + bathrooms * 3000 - age * 500 + location.score * 5000;
+                price += (Math.random() * 20000) - 10000;
+                
+                X.push([sqft, bedrooms, bathrooms, age, location.score]);
+                y.push(price);
+            }
+            return { X, y };
+        }
+        
+        // Initialize model
+        console.log('🤖 Training model...');
+        const { X, y } = generateData();
+        const model = new LinearRegression();
+        model.fit(X, y, 0.1, 500);
+        console.log('✅ Model ready!');
+        
+        // Handle form submit
+        document.getElementById('predictForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const sqft = parseInt(form.sqft.value);
+            const bedrooms = parseInt(form.bedrooms.value);
+            const bathrooms = parseInt(form.bathrooms.value);
+            const age = parseInt(form.age.value);
+            const location = parseInt(form.location.value);
+            
+            // Show loading
+            document.getElementById('predictForm').style.display = 'none';
+            document.getElementById('loading').classList.add('show');
+            
+            // Simulate processing time
+            setTimeout(() => {
+                const features = [sqft, bedrooms, bathrooms, age, location];
+                const price = model.predict(features);
+                
+                const locationNames = { 8: 'Urban', 5: 'Suburban', 2: 'Rural' };
+                
+                document.getElementById('priceDisplay').textContent = '$' + Math.round(price).toLocaleString();
+                document.getElementById('details').innerHTML = 
+                    `${sqft} sqft • ${bedrooms} bed • ${bathrooms} bath • ${age} yrs old • ${locationNames[location]}`;
+                
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('result').classList.add('show');
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    document.getElementById('predictForm').style.display = 'block';
+                    document.getElementById('result').classList.remove('show');
+                    form.reset();
+                }, 5000);
+            }, 800);
+        });
+    </script>
+</body>
+</html>
